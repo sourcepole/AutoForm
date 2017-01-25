@@ -27,7 +27,7 @@ class AutoForm:
                 field_index = 0
                 for field in feature.fields():
                     f_type = field.typeName()
-                    field_index = field_index + 1
+
                     print field.name()
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
@@ -41,5 +41,6 @@ class AutoForm:
                         pass
                     if f_type == "int4":
                         pass
+                    field_index = field_index + 1
         else:
             print "Please select a Layer"
