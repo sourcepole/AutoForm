@@ -31,16 +31,19 @@ class AutoForm:
                     print field.name()
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
+                        layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                     if f_type == "varchar":
                         pass
                     if f_type == "date":
                         layer.setEditorWidgetV2(field_index, 'DateTime')
+                        layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
                     if f_type == "bool":
                         layer.setEditorWidgetV2(field_index, 'CheckBox')
+                        layer.setEditorWidgetV2Config(field_index, {'CheckedState': 1, 'UncheckedState': 0})
                     if f_type == "int8":
                         pass
                     if f_type == "int4":
                         pass
-                    field_index = field_index + 1
+                    field_index += 1
         else:
             print "Please select a Layer"
