@@ -23,11 +23,11 @@ class AutoForm:
         layer = self.iface.activeLayer()
         if layer:
             features = layer.getFeatures()
+            self.identifyRelations()
             for feature in features:
                 field_index = 0
                 for field in feature.fields():
                     f_type = field.typeName()
-
                     print field.name()
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
@@ -47,3 +47,6 @@ class AutoForm:
                     field_index += 1
         else:
             print "Please select a Layer"
+
+    def identifyRelations(self):
+        print QgsProject.instance().relationManager().relations()
