@@ -23,12 +23,11 @@ class AutoForm:
         layer = self.iface.activeLayer()
         if layer:
             features = layer.getFeatures()
-            self.identifyRelations()
+            self.identifyRelations(layer)
             for feature in features:
                 field_index = 0
                 for field in feature.fields():
                     f_type = field.typeName()
-                    print field.name()
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
                         layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
@@ -39,7 +38,7 @@ class AutoForm:
                         layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
                     if f_type == "bool":
                         layer.setEditorWidgetV2(field_index, 'CheckBox')
-                        layer.setEditorWidgetV2Config(field_index, {'CheckedState': 1, 'UncheckedState': 0})
+                        layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
                     if f_type == "int8":
                         pass
                     if f_type == "int4":
@@ -48,5 +47,5 @@ class AutoForm:
         else:
             print "Please select a Layer"
 
-    def identifyRelations(self):
-        print QgsProject.instance().relationManager().relations()
+    def identifyRelations(self, layer):
+        print QgsProject.instance().relationManager().referencedRelations(layer)
