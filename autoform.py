@@ -69,6 +69,7 @@ class AutoForm:
         data = layer.dataProvider()
         print data.dataSourceUri()
         uri = QgsDataSourceURI(data.dataSourceUri())
+
         layer_table = uri.table()
         layer_db = uri.database()
         layer_schema = uri.schema()
@@ -87,9 +88,35 @@ class AutoForm:
             foreign_tables = cur.fetchall()
             for a_table in foreign_tables:
                 print a_table[0]
+                print a_layer[0]
+
+                pkey_query_1 = "SELECT conkey FROM pg_constraint WHERE conrelid = '%s' AND contype = 'p'" % a_layer[0]
+                cur.execute(pkey_query_1)
+                pkey_column = cur.fetchall()
+                for column in pkey_column:
+                    print column[0][0]
+
+                pkey_query_2 = "SELECT attname FROM pg_attribute WHERE attrelid='%s' AND attnum = '%s'" % (a_layer[0], column[0][0])
+                cur.execute(pkey_query_2)
+                att_names = cur.fetchall()
+                for att_name in att_names:
+                    print att_name[0]
+
+                fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % a_layer[0]
+                cur.execute(fkey_query)
+                fkey_column = cur.fetchall()
+                for column in fkey_column:
+                    ref_foreign_col_num = column[0][0]
+
+                nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % a_layer[0]
+                cur.execute(nfield_query)
+                nfield_column = cur.fetchall()
+                for column in nfield_column:
+                    ref_native_col_num = column[0][0]
+
                 foreign_uri = QgsDataSourceURI()
                 foreign_uri.setConnection("localhost", "5432", layer_db, "wha", "HtVlUUDNis1AMQRf5ZY9HtVlUUDNis1AMQRf5ZY9")
-                foreign_uri.setDataSource(layer_schema, a_table[0], None, "", "itfcode")
+                foreign_uri.setDataSource(layer_schema, a_table[0], None, "", att_name[0])
                 print foreign_uri
                 new_layer = QgsVectorLayer(foreign_uri.uri(), a_table[0], "postgres")
                 if new_layer.isValid:
@@ -102,3 +129,17 @@ class AutoForm:
 
                     if not layer_exists:
                         QgsMapLayerRegistry.instance().addMapLayer(new_layer)
+
+                    fields = new_layer.pendingFields()
+                    foreign_column = fields[ref_foreign_col_num - 1].name()
+
+                    fields = layer.pendingFields()
+                    native_column = fields[ref_native_col_num - 1].name()
+
+                    if native_column and foreign_column:
+                        print new_layer.id()
+                        print foreign_column
+                        print ref_native_col_num
+
+                        layer.setEditorWidgetV2(ref_native_col_num - 1, 'ValueRelation')
+                        layer.setEditorWidgetV2Config(ref_native_col_num - 1, {'Layer': new_layer.id(), 'Key': foreign_column, 'Value': foreign_column})
