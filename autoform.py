@@ -32,26 +32,26 @@ class AutoForm:
                 for field in feature.fields():
                     f_type = field.typeName()
                     if layer.editorWidgetV2(field_index) != 'TextEdit':
-                        break
-                    if f_type == "text":
+                        pass
+                    elif f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
                         layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
-                    if f_type == "varchar":
+                    elif f_type == "varchar":
                         if field.length > 255:
                             layer.setEditorWidgetV2(field_index, 'TextEdit')
                             layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                         else:
                             layer.setEditorWidgetV2(field_index, 'TextEdit')
                             layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
-                    if f_type == "date":
+                    elif f_type == "date":
                         layer.setEditorWidgetV2(field_index, 'DateTime')
                         layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
-                    if f_type == "bool":
+                    elif f_type == "bool":
                         layer.setEditorWidgetV2(field_index, 'CheckBox')
                         layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
-                    if f_type == "int8":
+                    elif f_type == "int8":
                         pass
-                    if f_type == "int4":
+                    elif f_type == "int4":
                         pass
                     field_index += 1
         else:
