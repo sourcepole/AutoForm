@@ -31,7 +31,6 @@ class AutoForm:
                 field_index = 0
                 for field in feature.fields():
                     f_type = field.typeName()
-                    print field.length()
                     if layer.editorWidgetV2(field_index) != 'TextEdit':
                         break
                     if f_type == "text":
@@ -66,21 +65,28 @@ class AutoForm:
         password = os.environ.get('PGPASSWORD')
         self.dbname = os.environ.get('PGDATABASE')
 
-        try:
-            conn = psycopg2.connect("dbname='ili' user='wha' host='localhost' password='HtVlUUDNis1AMQRf5ZY9HtVlUUDNis1AMQRf5ZY9'")
-            cur = conn.cursor()
-        except:
-            print "Connection Error"
-            return
+
 
         print "Connection achieved!"
         data = layer.dataProvider()
         print data.dataSourceUri()
         uri = QgsDataSourceURI(data.dataSourceUri())
+        print uri.host()
 
         layer_table = uri.table()
         layer_db = uri.database()
         layer_schema = uri.schema()
+        layer_host = uri.host()
+        layer_user = uri.username()
+        layer_password = uri.password()
+
+        try:
+            conn_string = "dbname=%s user=%s host='localhost' password=%s" % (layer_db, layer_user, layer_password)
+            conn = psycopg2.connect(conn_string)
+            cur = conn.cursor()
+        except:
+            print "Connection Error"
+            return
 
         oid_query = "SELECT oid FROM pg_class WHERE relname='%s'" % layer_table
         cur.execute(oid_query)
