@@ -59,19 +59,9 @@ class AutoForm:
 
     def identifyRelations(self, layer):
         print QgsProject.instance().relationManager().referencedRelations(layer)
-        self.host = os.environ.get('PGHOST')
-        self.port = os.environ.get('PGPORT')
-        username = os.environ.get('PGUSER')
-        password = os.environ.get('PGPASSWORD')
-        self.dbname = os.environ.get('PGDATABASE')
 
-
-
-        print "Connection achieved!"
         data = layer.dataProvider()
-        print data.dataSourceUri()
         uri = QgsDataSourceURI(data.dataSourceUri())
-        print uri.host()
 
         layer_table = uri.table()
         layer_db = uri.database()
@@ -101,9 +91,6 @@ class AutoForm:
             cur.execute(ftable_query)
             foreign_tables = cur.fetchall()
             for a_table in foreign_tables:
-                print a_table[0]
-                print a_layer[0]
-
                 pkey_query_1 = "SELECT conkey FROM pg_constraint WHERE conrelid = '%s' AND contype = 'p'" % a_layer[0]
                 cur.execute(pkey_query_1)
                 pkey_column = cur.fetchall()
@@ -131,7 +118,6 @@ class AutoForm:
                 foreign_uri = QgsDataSourceURI()
                 foreign_uri.setConnection("localhost", "5432", layer_db, "wha", "HtVlUUDNis1AMQRf5ZY9HtVlUUDNis1AMQRf5ZY9")
                 foreign_uri.setDataSource(layer_schema, a_table[0], None, "", att_name[0])
-                print foreign_uri
                 new_layer = QgsVectorLayer(foreign_uri.uri(), a_table[0], "postgres")
                 if new_layer.isValid:
                     layer_exists = False
