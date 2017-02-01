@@ -33,12 +33,17 @@ class AutoForm:
                     f_type = field.typeName()
                     print field.length()
                     if layer.editorWidgetV2(field_index) != 'TextEdit':
-                        pass
+                        break
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
                         layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                     if f_type == "varchar":
-                        pass
+                        if field.length > 255:
+                            layer.setEditorWidgetV2(field_index, 'TextEdit')
+                            layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                        else:
+                            layer.setEditorWidgetV2(field_index, 'TextEdit')
+                            layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
                     if f_type == "date":
                         layer.setEditorWidgetV2(field_index, 'DateTime')
                         layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
