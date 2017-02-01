@@ -31,6 +31,9 @@ class AutoForm:
                 field_index = 0
                 for field in feature.fields():
                     f_type = field.typeName()
+                    print field.length()
+                    if layer.editorWidgetV2(field_index) != 'TextEdit':
+                        pass
                     if f_type == "text":
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
                         layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
@@ -137,9 +140,7 @@ class AutoForm:
                     native_column = fields[ref_native_col_num - 1].name()
 
                     if native_column and foreign_column:
-                        print new_layer.id()
-                        print foreign_column
-                        print ref_native_col_num
+                        column_index = ref_native_col_num - 1
 
-                        layer.setEditorWidgetV2(ref_native_col_num - 1, 'ValueRelation')
-                        layer.setEditorWidgetV2Config(ref_native_col_num - 1, {'Layer': new_layer.id(), 'Key': foreign_column, 'Value': foreign_column})
+                        layer.setEditorWidgetV2(column_index, 'ValueRelation')
+                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer.id(), 'Key': foreign_column, 'Value': foreign_column})
