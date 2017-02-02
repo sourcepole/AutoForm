@@ -37,7 +37,7 @@ class AutoForm:
                         layer.setEditorWidgetV2(field_index, 'TextEdit')
                         layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                     elif f_type == "varchar":
-                        if field.length > 255:
+                        if field.length < 255:
                             layer.setEditorWidgetV2(field_index, 'TextEdit')
                             layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                         else:
@@ -143,4 +143,4 @@ class AutoForm:
                         print foreign_column
                         new_layer_id = new_layer.id()
                         layer.setEditorWidgetV2(column_index, 'ValueRelation')
-                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": True, "FilterExpression": False, "OrderByValue": True})
+                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
