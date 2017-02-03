@@ -72,7 +72,7 @@ class AutoForm:
         layer_port = uri.port()
 
         try:
-            conn_string = "dbname=%s user=%s host='localhost' password=%s" % (layer_db, layer_user, layer_password)
+            conn_string = "dbname=%s user=%s host='%s' password=%s" % (layer_db, layer_user, layer_host, layer_password)
             conn = psycopg2.connect(conn_string)
             cur = conn.cursor()
         except:
@@ -117,7 +117,7 @@ class AutoForm:
                     ref_native_col_num = column[0][0]
 
                 foreign_uri = QgsDataSourceURI()
-                foreign_uri.setConnection("localhost", layer_port, layer_db, layer_user, layer_password)
+                foreign_uri.setConnection(layer_host, layer_port, layer_db, layer_user, layer_password)
                 foreign_uri.setDataSource(layer_schema, a_table[0], None, "", att_name[0])
                 new_layer = QgsVectorLayer(foreign_uri.uri(), a_table[0], "postgres")
                 if new_layer.isValid:
