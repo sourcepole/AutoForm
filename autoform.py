@@ -15,8 +15,8 @@ class AutoForm:
     def initGui(self):
 
         self.action = QAction("Generate Form", self.iface.mainWindow())
-        QObject.connect(self.action, SIGNAL("activated()"), self.validateLayer)
         self.iface.addPluginToMenu("AutoForm", self.action)
+        QObject.connect(self.action, SIGNAL("activated()"), self.validateLayer)
 
     def unload(self):
         # Remove the plugin menu item and icon
