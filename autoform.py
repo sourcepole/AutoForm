@@ -68,6 +68,9 @@ class AutoForm:
         cur.execute(fk_query)
         referenced_layers = cur.fetchall()
 
+        self.handlelayers(cur, referenced_layers, uri, layer)
+
+    def handlelayers(self, cur, referenced_layers, uri, layer):
         for a_layer in referenced_layers:
             ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % a_layer[0]
             cur.execute(ftable_query)
@@ -85,31 +88,22 @@ class AutoForm:
                 for att_name in att_names:
                     att_name[0]
 
-                fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % a_layer[0]
-                cur.execute(fkey_query)
-                fkey_column = cur.fetchall()
-                for column in fkey_column:
-                    ref_foreign_col_num = column[0][0]
+                ref_foreign_col_num = self.retrieveforeigncol(cur, a_layer[0])
+                ref_native_col_num = self.retrievenativecol(cur, a_layer[0])
 
-                nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % a_layer[0]
-                cur.execute(nfield_query)
-                nfield_column = cur.fetchall()
-                for column in nfield_column:
-                    ref_native_col_num = column[0][0]
+                new_layer = self.addreftables(uri, a_table[0], att_name[0])
+                if new_layer is not False:
+                    fields = new_layer.pendingFields()
+                    foreign_column = fields[ref_foreign_col_num - 1].name()
 
-                    new_layer = self.addreftables(uri, a_table[0], att_name[0])
-                    if new_layer is not False:
-                        fields = new_layer.pendingFields()
-                        foreign_column = fields[ref_foreign_col_num - 1].name()
+                    fields = layer.pendingFields()
+                    native_column = fields[ref_native_col_num - 1].name()
 
-                        fields = layer.pendingFields()
-                        native_column = fields[ref_native_col_num - 1].name()
-
-                        if native_column and foreign_column:
-                            column_index = ref_native_col_num - 1
-                            new_layer_id = new_layer.id()
-                            layer.setEditorWidgetV2(column_index, 'ValueRelation')
-                            layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+                    if native_column and foreign_column:
+                        column_index = ref_native_col_num - 1
+                        new_layer_id = new_layer.id()
+                        layer.setEditorWidgetV2(column_index, 'ValueRelation')
+                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
 
     def uridbconnect(self, uri):
 
@@ -148,3 +142,21 @@ class AutoForm:
                 return new_layer
             else:
                 return False
+
+    def retrieveforeigncol(self, cur, layer):
+        fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % layer
+        cur.execute(fkey_query)
+        fkey_column = cur.fetchall()
+        for column in fkey_column:
+            ref_foreign_col_num = column[0][0]
+
+        return ref_foreign_col_num
+
+    def retrievenativecol(self, cur, layer):
+        nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % layer
+        cur.execute(nfield_query)
+        nfield_column = cur.fetchall()
+        for column in nfield_column:
+            ref_native_col_num = column[0][0]
+
+        return ref_native_col_num
