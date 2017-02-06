@@ -23,36 +23,36 @@ class AutoForm:
         self.iface.removePluginMenu("AutoForm", self.action)
 
     def validateLayer(self):
-        layer = self.iface.activeLayer()
-        if layer:
-            self.identifyRelations(layer)
+        native_layer = self.iface.activeLayer()
+        if native_layer:
+            self.identifyRelations(native_layer)
             field_index = 0
-            for field in layer.pendingFields():
+            for field in native_layer.pendingFields():
                 f_type = field.typeName()
-                if layer.editorWidgetV2(field_index) != 'TextEdit':
+                if native_layer.editorWidgetV2(field_index) != 'TextEdit':
                     pass
                 elif f_type == "text":
-                    layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                 elif f_type == "varchar":
                     if field.length < 255:
-                        layer.setEditorWidgetV2(field_index, 'TextEdit')
-                        layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                        native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                        native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                     else:
-                        layer.setEditorWidgetV2(field_index, 'TextEdit')
-                        layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
+                        native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                        native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
                 elif f_type == "date":
-                    layer.setEditorWidgetV2(field_index, 'DateTime')
-                    layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
+                    native_layer.setEditorWidgetV2(field_index, 'DateTime')
+                    native_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
                 elif f_type == "bool":
-                    layer.setEditorWidgetV2(field_index, 'CheckBox')
-                    layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
+                    native_layer.setEditorWidgetV2(field_index, 'CheckBox')
+                    native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
                 field_index += 1
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
-    def identifyRelations(self, layer):
-        data = layer.dataProvider()
+    def identifyRelations(self, native_layer):
+        data = native_layer.dataProvider()
         uri = QgsDataSourceURI(data.dataSourceUri())
 
         cur = self.uriDatabaseConnect(uri)
@@ -68,9 +68,9 @@ class AutoForm:
         cur.execute(fk_query)
         referenced_layers = cur.fetchall()
 
-        self.handleLayers(cur, referenced_layers, uri, layer)
+        self.handleLayers(cur, referenced_layers, uri, native_layer)
 
-    def handleLayers(self, cur, referenced_layers, uri, layer):
+    def handleLayers(self, cur, referenced_layers, uri, native_layer):
         for a_layer in referenced_layers:
             ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % a_layer[0]
             cur.execute(ftable_query)
@@ -93,20 +93,20 @@ class AutoForm:
 
                 new_layer = self.addRefTables(uri, a_table[0], att_name[0])
                 if new_layer is not False:
-                    self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, layer)
+                    self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, native_layer)
 
-    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, layer):
+    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
         fields = new_layer.pendingFields()
         foreign_column = fields[ref_foreign_col_num - 1].name()
 
-        fields = layer.pendingFields()
+        fields = native_layer.pendingFields()
         native_column = fields[ref_native_col_num - 1].name()
 
         if native_column and foreign_column:
             column_index = ref_native_col_num - 1
             new_layer_id = new_layer.id()
-            layer.setEditorWidgetV2(column_index, 'ValueRelation')
-            layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+            native_layer.setEditorWidgetV2(column_index, 'ValueRelation')
+            native_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
 
     def uriDatabaseConnect(self, uri):
         layer_table = uri.table()
