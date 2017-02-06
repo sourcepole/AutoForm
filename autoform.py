@@ -97,32 +97,19 @@ class AutoForm:
                 for column in nfield_column:
                     ref_native_col_num = column[0][0]
 
-                foreign_uri = QgsDataSourceURI()
-                foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
-                foreign_uri.setDataSource(uri.schema(), a_table[0], None, "", att_name[0])
-                new_layer = QgsVectorLayer(foreign_uri.uri(), a_table[0], "postgres")
-                if new_layer.isValid:
-                    layer_exists = False
+                    new_layer = self.addreftables(uri, a_table[0], att_name[0])
+                    if new_layer is not False:
+                        fields = new_layer.pendingFields()
+                        foreign_column = fields[ref_foreign_col_num - 1].name()
 
-                    for layers in QgsMapLayerRegistry.instance().mapLayers().values():
-                        layer_data = layers.dataProvider()
-                        if foreign_uri.uri() == layer_data.dataSourceUri():
-                            layer_exists = True
+                        fields = layer.pendingFields()
+                        native_column = fields[ref_native_col_num - 1].name()
 
-                    if not layer_exists:
-                        QgsMapLayerRegistry.instance().addMapLayer(new_layer)
-
-                    fields = new_layer.pendingFields()
-                    foreign_column = fields[ref_foreign_col_num - 1].name()
-
-                    fields = layer.pendingFields()
-                    native_column = fields[ref_native_col_num - 1].name()
-
-                    if native_column and foreign_column:
-                        column_index = ref_native_col_num - 1
-                        new_layer_id = new_layer.id()
-                        layer.setEditorWidgetV2(column_index, 'ValueRelation')
-                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+                        if native_column and foreign_column:
+                            column_index = ref_native_col_num - 1
+                            new_layer_id = new_layer.id()
+                            layer.setEditorWidgetV2(column_index, 'ValueRelation')
+                            layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
 
     def uridbconnect(self, uri):
 
@@ -142,3 +129,22 @@ class AutoForm:
         except:
             QMessageBox.warning(self.iface.mainWindow(), "Connection Error", "Failed to connect to database. Please make sure that your connection information is correct.")
             return False
+
+    def addreftables(self, uri, table, attr_name):
+        foreign_uri = QgsDataSourceURI()
+        foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
+        foreign_uri.setDataSource(uri.schema(), table, None, "", attr_name)
+        new_layer = QgsVectorLayer(foreign_uri.uri(), table, "postgres")
+        if new_layer.isValid:
+            layer_exists = False
+
+            for layers in QgsMapLayerRegistry.instance().mapLayers().values():
+                layer_data = layers.dataProvider()
+                if foreign_uri.uri() == layer_data.dataSourceUri():
+                    layer_exists = True
+
+            if not layer_exists:
+                QgsMapLayerRegistry.instance().addMapLayer(new_layer)
+                return new_layer
+            else:
+                return False
