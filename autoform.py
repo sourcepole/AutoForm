@@ -55,31 +55,18 @@ class AutoForm:
                         pass
                     field_index += 1
         else:
-            print "Please select a Layer"
+            QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
     def identifyRelations(self, layer):
-        print QgsProject.instance().relationManager().referencedRelations(layer)
-
         data = layer.dataProvider()
         uri = QgsDataSourceURI(data.dataSourceUri())
 
-        layer_table = uri.table()
-        layer_db = uri.database()
-        layer_schema = uri.schema()
-        layer_host = uri.host()
-        layer_user = uri.username()
-        layer_password = uri.password()
-        layer_port = uri.port()
+        cur = self.uridbconnect(uri)
 
-        try:
-            conn_string = "dbname=%s user=%s host='%s' password=%s" % (layer_db, layer_user, layer_host, layer_password)
-            conn = psycopg2.connect(conn_string)
-            cur = conn.cursor()
-        except:
-            print "Connection Error"
+        if cur is False:
             return
 
-        oid_query = "SELECT oid FROM pg_class WHERE relname='%s'" % layer_table
+        oid_query = "SELECT oid FROM pg_class WHERE relname='%s'" % uri.table()
         cur.execute(oid_query)
         layer_oid = cur.fetchone()
 
@@ -96,13 +83,13 @@ class AutoForm:
                 cur.execute(pkey_query_1)
                 pkey_column = cur.fetchall()
                 for column in pkey_column:
-                    print column[0][0]
+                    column[0][0]
 
                 pkey_query_2 = "SELECT attname FROM pg_attribute WHERE attrelid='%s' AND attnum = '%s'" % (a_layer[0], column[0][0])
                 cur.execute(pkey_query_2)
                 att_names = cur.fetchall()
                 for att_name in att_names:
-                    print att_name[0]
+                    att_name[0]
 
                 fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % a_layer[0]
                 cur.execute(fkey_query)
@@ -117,8 +104,8 @@ class AutoForm:
                     ref_native_col_num = column[0][0]
 
                 foreign_uri = QgsDataSourceURI()
-                foreign_uri.setConnection(layer_host, layer_port, layer_db, layer_user, layer_password)
-                foreign_uri.setDataSource(layer_schema, a_table[0], None, "", att_name[0])
+                foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
+                foreign_uri.setDataSource(uri.schema(), a_table[0], None, "", att_name[0])
                 new_layer = QgsVectorLayer(foreign_uri.uri(), a_table[0], "postgres")
                 if new_layer.isValid:
                     layer_exists = False
@@ -139,8 +126,25 @@ class AutoForm:
 
                     if native_column and foreign_column:
                         column_index = ref_native_col_num - 1
-
-                        print foreign_column
                         new_layer_id = new_layer.id()
                         layer.setEditorWidgetV2(column_index, 'ValueRelation')
                         layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+
+    def uridbconnect(self, uri):
+
+        layer_table = uri.table()
+        layer_db = uri.database()
+        layer_schema = uri.schema()
+        layer_host = uri.host()
+        layer_user = uri.username()
+        layer_password = uri.password()
+        layer_port = uri.port()
+
+        try:
+            conn_string = "dbname=%s user=%s host='%s' password=%s" % (layer_db, layer_user, layer_host, layer_password)
+            conn = psycopg2.connect(conn_string)
+            cur = conn.cursor()
+            return cur
+        except:
+            QMessageBox.warning(self.iface.mainWindow(), "Connection Error", "Failed to connect to database. Please make sure that your connection information is correct.")
+            return False
