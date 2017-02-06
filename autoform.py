@@ -93,17 +93,21 @@ class AutoForm:
 
                 new_layer = self.addreftables(uri, a_table[0], att_name[0])
                 if new_layer is not False:
-                    fields = new_layer.pendingFields()
-                    foreign_column = fields[ref_foreign_col_num - 1].name()
+                    self.handlevaluerelations(new_layer, ref_native_col_num, ref_foreign_col_num, layer)
 
-                    fields = layer.pendingFields()
-                    native_column = fields[ref_native_col_num - 1].name()
+    def handlevaluerelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, layer):
+        fields = new_layer.pendingFields()
+        foreign_column = fields[ref_foreign_col_num - 1].name()
 
-                    if native_column and foreign_column:
-                        column_index = ref_native_col_num - 1
-                        new_layer_id = new_layer.id()
-                        layer.setEditorWidgetV2(column_index, 'ValueRelation')
-                        layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+        fields = layer.pendingFields()
+        native_column = fields[ref_native_col_num - 1].name()
+
+        if native_column and foreign_column:
+            column_index = ref_native_col_num - 1
+            new_layer_id = new_layer.id()
+            layer.setEditorWidgetV2(column_index, 'ValueRelation')
+            layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+
 
     def uridbconnect(self, uri):
 
