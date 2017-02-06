@@ -47,10 +47,6 @@ class AutoForm:
                 elif f_type == "bool":
                     layer.setEditorWidgetV2(field_index, 'CheckBox')
                     layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
-                elif f_type == "int8":
-                    pass
-                elif f_type == "int4":
-                    pass
                 field_index += 1
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
