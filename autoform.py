@@ -90,8 +90,9 @@ class AutoForm:
 
         root = QgsProject.instance().layerTreeRoot()
 
-        if not root.findGroup("Raw_data_tables"):
-            root.addGroup("Raw_data_tables")
+        tableGroup = root.findGroup("Raw_data_tables")
+        if not tableGroup:
+            tableGroup = root.addGroup("Raw_data_tables")
 
         for a_layer in referenced_layers:
             ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % a_layer[0]
@@ -113,11 +114,11 @@ class AutoForm:
                 ref_foreign_col_num = self.retrieveForeignCol(cur, a_layer[0])
                 ref_native_col_num = self.retrieveNativeCol(cur, a_layer[0])
 
-                new_layer = self.addRefTables(uri, a_table[0], att_name[0])
+                new_layer = self.addRefTables(uri, a_table[0], att_name[0], tableGroup)
                 if new_layer is not False:
                     self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, native_layer)
 
-    def addRefTables(self, uri, table, attr_name):
+    def addRefTables(self, uri, table, attr_name, tableGroup):
         foreign_uri = QgsDataSourceURI()
         foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
         foreign_uri.setDataSource(uri.schema(), table, None, "", attr_name)
@@ -131,7 +132,8 @@ class AutoForm:
                     layer_exists = True
 
             if not layer_exists:
-                QgsMapLayerRegistry.instance().addMapLayer(new_layer)
+                QgsMapLayerRegistry.instance().addMapLayer(new_layer, False)
+                tableGroup.addLayer(new_layer)
                 return new_layer
             else:
                 return False
