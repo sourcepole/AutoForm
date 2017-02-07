@@ -90,10 +90,8 @@ class AutoForm:
 
         root = QgsProject.instance().layerTreeRoot()
 
-        for entry in root.children():
-            print isinstance(entry, QgsLayerTreeGroup)
-            if not root.findGroup("Raw_data_tables"):
-                root.addGroup("Raw_data_tables")
+        if not root.findGroup("Raw_data_tables"):
+            root.addGroup("Raw_data_tables")
 
         for a_layer in referenced_layers:
             ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % a_layer[0]
