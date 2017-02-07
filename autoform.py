@@ -3,6 +3,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
+from connector import connector
 
 import psycopg2
 import os
@@ -11,6 +12,7 @@ import os
 class AutoForm:
     def __init__( self, iface ):
         self.iface = iface
+        self.connector = connector(iface)
 
     def initGui(self):
 
@@ -52,11 +54,24 @@ class AutoForm:
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
+    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
+        fields = new_layer.pendingFields()
+        foreign_column = fields[ref_foreign_col_num - 1].name()
+
+        fields = native_layer.pendingFields()
+        native_column = fields[ref_native_col_num - 1].name()
+
+        if native_column and foreign_column:
+            column_index = ref_native_col_num - 1
+            new_layer_id = new_layer.id()
+            native_layer.setEditorWidgetV2(column_index, 'ValueRelation')
+            native_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+
     def identifyRelations(self, native_layer):
         data = native_layer.dataProvider()
         uri = QgsDataSourceURI(data.dataSourceUri())
 
-        cur = self.uriDatabaseConnect(uri)
+        cur = self.connector.uriDatabaseConnect(uri)
 
         if cur is False:
             return
@@ -95,37 +110,6 @@ class AutoForm:
                 new_layer = self.addRefTables(uri, a_table[0], att_name[0])
                 if new_layer is not False:
                     self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, native_layer)
-
-    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
-        fields = new_layer.pendingFields()
-        foreign_column = fields[ref_foreign_col_num - 1].name()
-
-        fields = native_layer.pendingFields()
-        native_column = fields[ref_native_col_num - 1].name()
-
-        if native_column and foreign_column:
-            column_index = ref_native_col_num - 1
-            new_layer_id = new_layer.id()
-            native_layer.setEditorWidgetV2(column_index, 'ValueRelation')
-            native_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
-
-    def uriDatabaseConnect(self, uri):
-        layer_table = uri.table()
-        layer_db = uri.database()
-        layer_schema = uri.schema()
-        layer_host = uri.host()
-        layer_user = uri.username()
-        layer_password = uri.password()
-        layer_port = uri.port()
-
-        try:
-            conn_string = "dbname=%s user=%s host='%s' password=%s" % (layer_db, layer_user, layer_host, layer_password)
-            conn = psycopg2.connect(conn_string)
-            cur = conn.cursor()
-            return cur
-        except:
-            QMessageBox.warning(self.iface.mainWindow(), "Connection Error", "Failed to connect to database. Please make sure that your connection information is correct.")
-            return False
 
     def addRefTables(self, uri, table, attr_name):
         foreign_uri = QgsDataSourceURI()
