@@ -3,7 +3,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
-from connector import connector
+from connector import Connector
+from relationretriever import RelationRetriever
 
 import psycopg2
 import os
@@ -12,7 +13,8 @@ import os
 class AutoForm:
     def __init__( self, iface ):
         self.iface = iface
-        self.connector = connector(iface)
+        self.connector = Connector()
+        self.relationretriever = RelationRetriever()
 
     def initGui(self):
 
@@ -75,14 +77,10 @@ class AutoForm:
 
         if cur is False:
             return
+        else:
+            self.relationretriever.setCur(cur)
 
-        oid_query = "SELECT oid FROM pg_class WHERE relname='%s'" % uri.table()
-        cur.execute(oid_query)
-        layer_oid = cur.fetchone()
-
-        fk_query = "SELECT confrelid FROM pg_constraint WHERE conrelid='%s' AND contype = 'f'" % layer_oid
-        cur.execute(fk_query)
-        referenced_layers = cur.fetchall()
+        referenced_layers = self.relationretriever.retrieveReferencedTables(uri)
 
         self.handleLayers(cur, referenced_layers, uri, native_layer)
 
@@ -95,26 +93,16 @@ class AutoForm:
             tableGroup = root.addGroup("Raw_data_tables")
 
         for a_layer in referenced_layers:
-            ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % a_layer[0]
-            cur.execute(ftable_query)
-            foreign_tables = cur.fetchall()
+            self.relationretriever.setLayer(a_layer[0])
+            foreign_tables = self.relationretriever.retrieveForeignTables()
+
             for a_table in foreign_tables:
-                pkey_query_1 = "SELECT conkey FROM pg_constraint WHERE conrelid = '%s' AND contype = 'p'" % a_layer[0]
-                cur.execute(pkey_query_1)
-                pkey_column = cur.fetchall()
-                for column in pkey_column:
-                    column[0][0]
+                pkeyName = self.relationretriever.retrieveTablePrimaryKeyName()
 
-                pkey_query_2 = "SELECT attname FROM pg_attribute WHERE attrelid='%s' AND attnum = '%s'" % (a_layer[0], column[0][0])
-                cur.execute(pkey_query_2)
-                att_names = cur.fetchall()
-                for att_name in att_names:
-                    att_name[0]
+                ref_foreign_col_num = self.relationretriever.retrieveForeignCol()
+                ref_native_col_num = self.relationretriever.retrieveNativeCol()
 
-                ref_foreign_col_num = self.retrieveForeignCol(cur, a_layer[0])
-                ref_native_col_num = self.retrieveNativeCol(cur, a_layer[0])
-
-                new_layer = self.addRefTables(uri, a_table[0], att_name[0], tableGroup)
+                new_layer = self.addRefTables(uri, a_table[0], pkeyName, tableGroup)
                 if new_layer is not False:
                     self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, native_layer)
 
@@ -137,21 +125,3 @@ class AutoForm:
                 return new_layer
             else:
                 return False
-
-    def retrieveForeignCol(self, cur, layer):
-        fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % layer
-        cur.execute(fkey_query)
-        fkey_column = cur.fetchall()
-        for column in fkey_column:
-            ref_foreign_col_num = column[0][0]
-
-        return ref_foreign_col_num
-
-    def retrieveNativeCol(self, cur, layer):
-        nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % layer
-        cur.execute(nfield_query)
-        nfield_column = cur.fetchall()
-        for column in nfield_column:
-            ref_native_col_num = column[0][0]
-
-        return ref_native_col_num

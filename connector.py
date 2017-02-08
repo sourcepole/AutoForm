@@ -8,9 +8,9 @@ import psycopg2
 import os
 
 
-class connector:
-    def __init__(self, iface):
-        self.iface = iface
+class Connector:
+    def __init__(self):
+        pass
 
     def uriDatabaseConnect(self, uri):
         layer_table = uri.table()
