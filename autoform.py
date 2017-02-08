@@ -30,6 +30,7 @@ class AutoForm:
         if native_layer:
             self.identifyRelations(native_layer)
             self.alterForm(native_layer)
+            QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
@@ -56,7 +57,6 @@ class AutoForm:
                 native_layer.setEditorWidgetV2(field_index, 'CheckBox')
                 native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
             field_index += 1
-        QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
 
 
     def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
@@ -71,6 +71,8 @@ class AutoForm:
             new_layer_id = new_layer.id()
             native_layer.setEditorWidgetV2(column_index, 'ValueRelation')
             native_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+            self.identifyRelations(new_layer)
+            self.alterForm(new_layer)
 
     def identifyRelations(self, native_layer):
         data = native_layer.dataProvider()
