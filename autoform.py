@@ -7,7 +7,6 @@ from connector import Connector
 from relationretriever import RelationRetriever
 
 import psycopg2
-import os
 
 
 class AutoForm:

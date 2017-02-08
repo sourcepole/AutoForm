@@ -1,11 +1,7 @@
-from qgis.core import QgsFeature,  QgsMapLayerRegistry
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 
 import psycopg2
-import os
 
 
 class Connector:
