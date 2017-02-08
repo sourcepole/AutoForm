@@ -29,31 +29,35 @@ class AutoForm:
         native_layer = self.iface.activeLayer()
         if native_layer:
             self.identifyRelations(native_layer)
-            field_index = 0
-            for field in native_layer.pendingFields():
-                f_type = field.typeName()
-                if native_layer.editorWidgetV2(field_index) != 'TextEdit':
-                    pass
-                elif f_type == "text":
-                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
-                elif f_type == "varchar":
-                    if field.length < 255:
-                        native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                        native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
-                    else:
-                        native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                        native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
-                elif f_type == "date":
-                    native_layer.setEditorWidgetV2(field_index, 'DateTime')
-                    native_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
-                elif f_type == "bool":
-                    native_layer.setEditorWidgetV2(field_index, 'CheckBox')
-                    native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
-                field_index += 1
-            QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
+            self.alterForm(native_layer)
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
+
+    def alterForm(self, native_layer):
+        field_index = 0
+        for field in native_layer.pendingFields():
+            f_type = field.typeName()
+            if native_layer.editorWidgetV2(field_index) != 'TextEdit':
+                pass
+            elif f_type == "text":
+                native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+            elif f_type == "varchar":
+                if field.length < 255:
+                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                else:
+                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
+            elif f_type == "date":
+                native_layer.setEditorWidgetV2(field_index, 'DateTime')
+                native_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
+            elif f_type == "bool":
+                native_layer.setEditorWidgetV2(field_index, 'CheckBox')
+                native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
+            field_index += 1
+        QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
+
 
     def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
         fields = new_layer.pendingFields()
