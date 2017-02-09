@@ -21,6 +21,16 @@ import psycopg2
 
 
 class AutoForm:
+    """The main class of the plugin
+
+    The AutoForm class controls the flow of the plugin and makes sure that all
+    of the functions are called in the correct order. It relies on the
+    Connector class to create a connection to the database and the
+    RelationRetriever class for performing the queries on the database. The
+    functions responsible for directly altering the feature form may be found
+    here.
+    """
+
     def __init__( self, iface ):
         self.iface = iface
         self.connector = Connector()
@@ -32,10 +42,21 @@ class AutoForm:
         QObject.connect(self.action, SIGNAL("activated()"), self.handleFormofLayer)
 
     def unload(self):
-        # Remove the plugin menu item and icon
         self.iface.removePluginMenu("AutoForm", self.action)
 
     def handleFormofLayer(self):
+        """Calls all important functions in the plugin.
+
+        First, if the selected layer is valid, the plugin checks whether it has
+        any foreign keys which reference another table. If this is the case
+        then those tables are loaded into the project and a ValueRelation
+        widget type is created in the appropriate field. Then, all other fields
+        have their widgets altered based on their fieldType and length. Next,
+        all empty groups are removed from the MapLayerRegistry. This is in case
+        the plugin added an empty group for the referenced tables but none were
+        added. Finally, a message box is returned to notify the user that the
+        process is finished.
+        """
         selected_layer = self.iface.activeLayer()
         if selected_layer:
             self.identifyRelations(selected_layer)
@@ -46,6 +67,7 @@ class AutoForm:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
     def alterForm(self, selected_layer):
+        """Iterate over the fields of the layer and alters the widgets in accordance to the typeName and length."""
         field_index = 0
         for field in selected_layer.pendingFields():
             f_type = field.typeName()
@@ -70,6 +92,7 @@ class AutoForm:
             field_index += 1
 
     def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer):
+        """Create a ValueRelation widget from the field numbers for the selected layer"""
         fields = new_layer.pendingFields()
         foreign_column = fields[ref_foreign_col_num - 1].name()
 
@@ -81,10 +104,12 @@ class AutoForm:
             new_layer_id = new_layer.id()
             selected_layer.setEditorWidgetV2(column_index, 'ValueRelation')
             selected_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+            # Repeat the entire process for the layer which was just added
             self.identifyRelations(new_layer)
             self.alterForm(new_layer)
 
     def identifyRelations(self, selected_layer):
+        """Return a cursor of the connection based on the layer's uri."""
         data = selected_layer.dataProvider()
         uri = QgsDataSourceURI(data.dataSourceUri())
 
@@ -95,8 +120,20 @@ class AutoForm:
 
         self.handleLayers(cur, uri, selected_layer)
 
-    def handleLayers(self, cur, uri, selected_layer):
 
+    def handleLayers(self, cur, uri, selected_layer):
+        """Decides which variables to use for a ValueRelation in a table if applicable.
+
+        First, it creates an instance of the RelationRetriever class, which it
+        then uses to retrieve a list of layer id's. Secondly, a group is
+        created for the layers which will be automatically loaded. Next, a for
+        loop begins to iterate over every table oid which was previously
+        retrieved and a layer variable is set for the RelationRetriever class.
+        Then, for each table it's primary key and the relevant field numbers of
+        the foreign key relation are retrieved. Finally, the information is
+        used to create a new layer by the addRefTables function, which goes on
+        to be used in the handleValueRelations function.
+        """
         relationretriever = RelationRetriever(cur)
         referenced_layers = relationretriever.retrieveReferencedTables(uri)
 
@@ -120,6 +157,7 @@ class AutoForm:
                     self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer)
 
     def addRefTables(self, uri, table, attr_name, tableGroup):
+        """Create a datasource for a referenced layer and add it to the map layer registry."""
         foreign_uri = QgsDataSourceURI()
         foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
         foreign_uri.setDataSource(uri.schema(), table, None, "", attr_name)
@@ -140,6 +178,7 @@ class AutoForm:
                 return False
 
     def filterEmptyGroups(self):
+        """Delete any groups without children."""
         root = QgsProject.instance().layerTreeRoot()
         for child in root.children():
             if isinstance(child, QgsLayerTreeGroup):

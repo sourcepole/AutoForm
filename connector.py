@@ -16,10 +16,13 @@ import psycopg2
 
 
 class Connector:
+    """Establishes a connection to the database of a layer, based on its uri."""
+
     def __init__(self):
         pass
 
     def uriDatabaseConnect(self, uri):
+        """Create a connection from a uri and return a cursor of it."""
         try:
             conn_string = "dbname=%s user=%s host='%s' password=%s" % (uri.database(), uri.username(), uri.host(), uri.password())
             conn = psycopg2.connect(conn_string)
