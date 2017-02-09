@@ -18,13 +18,13 @@ class AutoForm:
 
         self.action = QAction("Generate Form", self.iface.mainWindow())
         self.iface.addPluginToMenu("AutoForm", self.action)
-        QObject.connect(self.action, SIGNAL("activated()"), self.validateLayer)
+        QObject.connect(self.action, SIGNAL("activated()"), self.handleFormofLayer)
 
     def unload(self):
         # Remove the plugin menu item and icon
         self.iface.removePluginMenu("AutoForm", self.action)
 
-    def validateLayer(self):
+    def handleFormofLayer(self):
         selected_layer = self.iface.activeLayer()
         if selected_layer:
             self.identifyRelations(selected_layer)
