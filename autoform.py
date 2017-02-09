@@ -13,7 +13,6 @@ class AutoForm:
     def __init__( self, iface ):
         self.iface = iface
         self.connector = Connector()
-        self.relationretriever = RelationRetriever()
 
     def initGui(self):
 
@@ -82,30 +81,28 @@ class AutoForm:
 
         if cur is False:
             return
-        else:
-            self.relationretriever.setCur(cur)
 
-        referenced_layers = self.relationretriever.retrieveReferencedTables(uri)
+        self.handleLayers(cur, uri, native_layer)
 
-        self.handleLayers(cur, referenced_layers, uri, native_layer)
+    def handleLayers(self, cur, uri, native_layer):
 
-    def handleLayers(self, cur, referenced_layers, uri, native_layer):
+        relationretriever = RelationRetriever(cur)
+        referenced_layers = relationretriever.retrieveReferencedTables(uri)
 
         root = QgsProject.instance().layerTreeRoot()
-
         tableGroup = root.findGroup("Raw_data_tables")
         if not tableGroup:
             tableGroup = root.addGroup("Raw_data_tables")
 
         for a_layer in referenced_layers:
-            self.relationretriever.setLayer(a_layer[0])
-            foreign_tables = self.relationretriever.retrieveForeignTables()
+            relationretriever.setLayer(a_layer[0])
+            foreign_tables = relationretriever.retrieveForeignTables()
 
             for a_table in foreign_tables:
-                pkeyName = self.relationretriever.retrieveTablePrimaryKeyName()
+                pkeyName = relationretriever.retrieveTablePrimaryKeyName()
 
-                ref_foreign_col_num = self.relationretriever.retrieveForeignCol()
-                ref_native_col_num = self.relationretriever.retrieveNativeCol()
+                ref_foreign_col_num = relationretriever.retrieveForeignCol()
+                ref_native_col_num = relationretriever.retrieveNativeCol()
 
                 new_layer = self.addRefTables(uri, a_table[0], pkeyName, tableGroup)
                 if new_layer is not False:

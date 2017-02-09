@@ -4,9 +4,7 @@ import psycopg2
 class RelationRetriever:
     def __init__(self, cur=None):
         self.cur = cur
-
-    def setCur(self, cur):
-        self.cur = cur
+        self.layer = None
 
     def setLayer(self, layer):
         self.layer = layer
