@@ -10,14 +10,14 @@
 name=autoform
 qgisMinimumVersion=2.0
 description=AutoForm Plugin
-version=0.1
-author=wha
+version=0.1.0
+author=William Habelt, Sourcepole AG
 email=wha@sourcepole.ch
 
 about=Plugin to automatically create better input masks for layers
 
-tracker=Github
-repository=Github
+tracker=https://github.com/HabeltWi/AutoForm/issues
+repository=https://github.com/HabeltWi/AutoForm
 # End of mandatory metadata
 
 # Recommended items:
@@ -28,12 +28,11 @@ repository=Github
 # Tags are comma separated with spaces allowed
 tags=
 
-homepage=
-category=Plugins
+homepage=https://github.com/HabeltWi/AutoForm
+category=Database
 icon=
 # experimental flag
 experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
