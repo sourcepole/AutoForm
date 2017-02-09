@@ -25,56 +25,56 @@ class AutoForm:
         self.iface.removePluginMenu("AutoForm", self.action)
 
     def validateLayer(self):
-        native_layer = self.iface.activeLayer()
-        if native_layer:
-            self.identifyRelations(native_layer)
-            self.alterForm(native_layer)
+        selected_layer = self.iface.activeLayer()
+        if selected_layer:
+            self.identifyRelations(selected_layer)
+            self.alterForm(selected_layer)
             self.filterEmptyGroups()
             QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
 
-    def alterForm(self, native_layer):
+    def alterForm(self, selected_layer):
         field_index = 0
-        for field in native_layer.pendingFields():
+        for field in selected_layer.pendingFields():
             f_type = field.typeName()
-            if native_layer.editorWidgetV2(field_index) != 'TextEdit':
+            if selected_layer.editorWidgetV2(field_index) != 'TextEdit':
                 pass
             elif f_type == "text":
-                native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
             elif f_type == "varchar":
                 if field.length < 255:
-                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                    selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                    selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
                 else:
-                    native_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    native_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
+                    selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                    selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
             elif f_type == "date":
-                native_layer.setEditorWidgetV2(field_index, 'DateTime')
-                native_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
+                selected_layer.setEditorWidgetV2(field_index, 'DateTime')
+                selected_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
             elif f_type == "bool":
-                native_layer.setEditorWidgetV2(field_index, 'CheckBox')
-                native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
+                selected_layer.setEditorWidgetV2(field_index, 'CheckBox')
+                selected_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
             field_index += 1
 
-    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
+    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer):
         fields = new_layer.pendingFields()
         foreign_column = fields[ref_foreign_col_num - 1].name()
 
-        fields = native_layer.pendingFields()
+        fields = selected_layer.pendingFields()
         native_column = fields[ref_native_col_num - 1].name()
 
         if native_column and foreign_column:
             column_index = ref_native_col_num - 1
             new_layer_id = new_layer.id()
-            native_layer.setEditorWidgetV2(column_index, 'ValueRelation')
-            native_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
+            selected_layer.setEditorWidgetV2(column_index, 'ValueRelation')
+            selected_layer.setEditorWidgetV2Config(column_index, {'Layer': new_layer_id, 'Key': foreign_column, 'Value': foreign_column, "AllowMulti": False, "AllowNull": False, "OrderByValue": True})
             self.identifyRelations(new_layer)
             self.alterForm(new_layer)
 
-    def identifyRelations(self, native_layer):
-        data = native_layer.dataProvider()
+    def identifyRelations(self, selected_layer):
+        data = selected_layer.dataProvider()
         uri = QgsDataSourceURI(data.dataSourceUri())
 
         cur = self.connector.uriDatabaseConnect(uri)
@@ -82,9 +82,9 @@ class AutoForm:
         if cur is False:
             return
 
-        self.handleLayers(cur, uri, native_layer)
+        self.handleLayers(cur, uri, selected_layer)
 
-    def handleLayers(self, cur, uri, native_layer):
+    def handleLayers(self, cur, uri, selected_layer):
 
         relationretriever = RelationRetriever(cur)
         referenced_layers = relationretriever.retrieveReferencedTables(uri)
@@ -106,7 +106,7 @@ class AutoForm:
 
                 new_layer = self.addRefTables(uri, a_table[0], pkeyName, tableGroup)
                 if new_layer is not False:
-                    self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, native_layer)
+                    self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer)
 
     def addRefTables(self, uri, table, attr_name, tableGroup):
         foreign_uri = QgsDataSourceURI()
