@@ -30,6 +30,7 @@ class AutoForm:
         if native_layer:
             self.identifyRelations(native_layer)
             self.alterForm(native_layer)
+            self.filterEmptyGroups()
             QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
         else:
             QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
@@ -57,7 +58,6 @@ class AutoForm:
                 native_layer.setEditorWidgetV2(field_index, 'CheckBox')
                 native_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
             field_index += 1
-
 
     def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, native_layer):
         fields = new_layer.pendingFields()
@@ -130,3 +130,10 @@ class AutoForm:
                 return new_layer
             else:
                 return False
+
+    def filterEmptyGroups(self):
+        root = QgsProject.instance().layerTreeRoot()
+        for child in root.children():
+            if isinstance(child, QgsLayerTreeGroup):
+                if not child.findLayers():
+                    root.removeChildNode(child)
