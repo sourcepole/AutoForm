@@ -18,8 +18,8 @@ import psycopg2
 class Connector:
     """Establishes a connection to the database of a layer, based on its uri."""
 
-    def __init__(self):
-        pass
+    def __init__(self, iface):
+        self.iface = iface
 
     def uriDatabaseConnect(self, uri):
         """Create a connection from a uri and return a cursor of it."""

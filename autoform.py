@@ -33,7 +33,7 @@ class AutoForm:
 
     def __init__( self, iface ):
         self.iface = iface
-        self.connector = Connector()
+        self.connector = Connector(iface)
 
     def initGui(self):
         self.action = QAction("Generate Form", self.iface.mainWindow())
