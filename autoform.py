@@ -33,10 +33,9 @@ class AutoForm:
 
     def __init__( self, iface ):
         self.iface = iface
-        self.connector = Connector()
+        self.connector = Connector(iface)
 
     def initGui(self):
-
         self.action = QAction("Generate Form", self.iface.mainWindow())
         self.iface.addPluginToMenu("AutoForm", self.action)
         QObject.connect(self.action, SIGNAL("activated()"), self.handleFormofLayer)
@@ -91,7 +90,8 @@ class AutoForm:
                 selected_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
             field_index += 1
 
-    def handleValueRelations(self, new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer):
+    def handleValueRelations(self, new_layer, ref_native_col_num,
+                             ref_foreign_col_num, selected_layer):
         """Create a ValueRelation widget from the field numbers for the selected layer"""
         fields = new_layer.pendingFields()
         foreign_column = fields[ref_foreign_col_num - 1].name()
@@ -111,15 +111,15 @@ class AutoForm:
     def identifyRelations(self, selected_layer):
         """Return a cursor of the connection based on the layer's uri."""
         data = selected_layer.dataProvider()
+        if data.name() != 'postgres':
+            return
         uri = QgsDataSourceURI(data.dataSourceUri())
-
         cur = self.connector.uriDatabaseConnect(uri)
 
         if cur is False:
             return
 
         self.handleLayers(cur, uri, selected_layer)
-
 
     def handleLayers(self, cur, uri, selected_layer):
         """Decides which variables to use for a ValueRelation in a table if applicable.
@@ -136,9 +136,9 @@ class AutoForm:
         """
         relationretriever = RelationRetriever(cur)
         referenced_layers = relationretriever.retrieveReferencedTables(uri)
-
         root = QgsProject.instance().layerTreeRoot()
         tableGroup = root.findGroup("Raw_data_tables")
+
         if not tableGroup:
             tableGroup = root.addGroup("Raw_data_tables")
 
@@ -148,11 +148,10 @@ class AutoForm:
 
             for a_table in foreign_tables:
                 pkeyName = relationretriever.retrieveTablePrimaryKeyName()
-
                 ref_foreign_col_num = relationretriever.retrieveForeignCol()
                 ref_native_col_num = relationretriever.retrieveNativeCol()
-
                 new_layer = self.addRefTables(uri, a_table[0], pkeyName, tableGroup)
+
                 if new_layer is not False:
                     self.handleValueRelations(new_layer, ref_native_col_num, ref_foreign_col_num, selected_layer)
 
@@ -162,6 +161,7 @@ class AutoForm:
         foreign_uri.setConnection(uri.host(), uri.port(), uri.database(), uri.username(), uri.password())
         foreign_uri.setDataSource(uri.schema(), table, None, "", attr_name)
         new_layer = QgsVectorLayer(foreign_uri.uri(), table, "postgres")
+
         if new_layer.isValid:
             layer_exists = False
 
@@ -180,6 +180,7 @@ class AutoForm:
     def filterEmptyGroups(self):
         """Delete any groups without children."""
         root = QgsProject.instance().layerTreeRoot()
+
         for child in root.children():
             if isinstance(child, QgsLayerTreeGroup):
                 if not child.findLayers():

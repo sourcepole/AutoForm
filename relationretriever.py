@@ -45,6 +45,7 @@ class RelationRetriever:
         fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % self.layer
         self.cur.execute(fkey_query)
         fkey_column = self.cur.fetchall()
+
         for column in fkey_column:
             ref_foreign_col_num = column[0][0]
 
@@ -55,6 +56,7 @@ class RelationRetriever:
         nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % self.layer
         self.cur.execute(nfield_query)
         nfield_column = self.cur.fetchall()
+
         for column in nfield_column:
             ref_native_col_num = column[0][0]
 
@@ -67,6 +69,7 @@ class RelationRetriever:
         pkey_query_2 = "SELECT attname FROM pg_attribute WHERE attrelid='%s' AND attnum = '%s'" % (self.layer, table_pkey)
         self.cur.execute(pkey_query_2)
         att_names = self.cur.fetchall()
+
         for att_name in att_names:
             return att_name[0]
 
@@ -75,6 +78,7 @@ class RelationRetriever:
         pkey_query_1 = "SELECT conkey FROM pg_constraint WHERE conrelid = '%s' AND contype = 'p'" % self.layer
         self.cur.execute(pkey_query_1)
         pkey_column = self.cur.fetchall()
+
         for column in pkey_column:
             return column[0][0]
 
@@ -83,4 +87,5 @@ class RelationRetriever:
         ftable_query = "SELECT relname FROM pg_class WHERE oid='%s'" % self.layer
         self.cur.execute(ftable_query)
         foreign_tables = self.cur.fetchall()
+
         return foreign_tables

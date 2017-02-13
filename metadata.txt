@@ -10,8 +10,10 @@
 name=autoform
 qgisMinimumVersion=2.0
 description=AutoForm Plugin
+
 version=0.1.0
 author=William Habelt, Sourcepole AG
+
 email=wha@sourcepole.ch
 
 about=Plugin to automatically create better input masks for layers
