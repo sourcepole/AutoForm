@@ -111,6 +111,8 @@ class AutoForm:
     def identifyRelations(self, selected_layer):
         """Return a cursor of the connection based on the layer's uri."""
         data = selected_layer.dataProvider()
+        if data.name() != 'postgres':
+            return
         uri = QgsDataSourceURI(data.dataSourceUri())
         cur = self.connector.uriDatabaseConnect(uri)
 
