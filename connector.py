@@ -26,6 +26,7 @@ class Connector:
         """Create a connection from a uri and return a cursor of it."""
         conninfo = uri.connectionInfo()
         conn = None
+        cur = None
         ok = False
         while not conn:
             try:
@@ -36,15 +37,10 @@ class Connector:
                 if not ok:
                     break
 
-                uri.setUsername(user)
-                uri.setPassword(passwd)
-
         if not conn:
             QMessageBox.warning(self.iface.mainWindow(), "Connection Error", "Could not connect to PostgreSQL database - check connection info")
 
         if ok:
             QgsCredentials.instance().put(conninfo, user, passwd)
-
-        ogrstr = "PG:%s" % uri.connectionInfo()
 
         return cur
