@@ -148,8 +148,8 @@ class AutoForm:
 
             for a_table in foreign_tables:
                 pkeyName = relationretriever.retrieveTablePrimaryKeyName()
-                ref_foreign_col_num = relationretriever.retrieveForeignCol()
-                ref_native_col_num = relationretriever.retrieveNativeCol()
+                ref_foreign_col_num = relationretriever.retrieveForeignCol(uri)
+                ref_native_col_num = relationretriever.retrieveNativeCol(uri)
                 new_layer = self.addRefTables(uri, a_table[0], pkeyName, tableGroup)
 
                 if new_layer is not False:
@@ -162,7 +162,7 @@ class AutoForm:
         foreign_uri.setDataSource(uri.schema(), table, None, "", attr_name)
         new_layer = QgsVectorLayer(foreign_uri.uri(), table, "postgres")
 
-        if new_layer.isValid:
+        if new_layer.isValid():
             layer_exists = False
 
             for layers in QgsMapLayerRegistry.instance().mapLayers().values():

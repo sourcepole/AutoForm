@@ -38,11 +38,12 @@ class RelationRetriever:
         self.cur.execute(oid_query)
         layer_oid = self.cur.fetchone()
 
-        return layer_oid
+        return layer_oid[0]
 
-    def retrieveForeignCol(self):
+    def retrieveForeignCol(self, uri):
         """Retrieve the number of the field which is referenced in the foreign key relation."""
-        fkey_query = "SELECT confkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % self.layer
+        selected_oid = self.retrieveSelectedOid(uri)
+        fkey_query = "SELECT confkey FROM pg_constraint WHERE conrelid = '%s' AND confrelid = %s AND contype = 'f'" % (selected_oid, self.layer)
         self.cur.execute(fkey_query)
         fkey_column = self.cur.fetchall()
 
@@ -51,9 +52,10 @@ class RelationRetriever:
 
         return ref_foreign_col_num
 
-    def retrieveNativeCol(self):
+    def retrieveNativeCol(self, uri):
         """Retrieve the number of the field which makes a reference in the foreign key relation."""
-        nfield_query = "SELECT conkey FROM pg_constraint WHERE confrelid = %s AND contype = 'f'" % self.layer
+        selected_oid = self.retrieveSelectedOid(uri)
+        nfield_query = "SELECT conkey FROM pg_constraint WHERE conrelid = '%s' AND confrelid = %s AND contype = 'f'" % (selected_oid, self.layer)
         self.cur.execute(nfield_query)
         nfield_column = self.cur.fetchall()
 
