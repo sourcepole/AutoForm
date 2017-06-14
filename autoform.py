@@ -67,28 +67,27 @@ class AutoForm:
 
     def alterForm(self, selected_layer):
         """Iterate over the fields of the layer and alters the widgets in accordance to the typeName and length."""
-        field_index = 0
-        for field in selected_layer.pendingFields():
+        for field_index, field in enumerate(selected_layer.pendingFields()):
             f_type = field.typeName()
             if selected_layer.editorWidgetV2(field_index) != 'TextEdit':
                 pass
             elif f_type == "text":
                 selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
+                selected_layer.setEditorWidgetV2Config(field_index, {
+                    'IsMultiline': True, 'UseHtml': False})
             elif f_type == "varchar":
-                if field.length < 255:
-                    selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': True, 'UseHtml': False})
-                else:
-                    selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
-                    selected_layer.setEditorWidgetV2Config(field_index, {'IsMultiline': False, 'UseHtml': False})
+                selected_layer.setEditorWidgetV2(field_index, 'TextEdit')
+                selected_layer.setEditorWidgetV2Config(field_index, {
+                    'IsMultiline': (field.length() > 80), 'UseHtml': False})
             elif f_type == "date":
                 selected_layer.setEditorWidgetV2(field_index, 'DateTime')
-                selected_layer.setEditorWidgetV2Config(field_index, {'display_format': 'yyyy-MM-dd', 'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
+                selected_layer.setEditorWidgetV2Config(field_index, {
+                    'display_format': 'yyyy-MM-dd',
+                    'field_format': 'yyyy-MM-dd', 'calendar_popup': True})
             elif f_type == "bool":
                 selected_layer.setEditorWidgetV2(field_index, 'CheckBox')
-                selected_layer.setEditorWidgetV2Config(field_index, {'CheckedState': 't', 'UncheckedState': 'f'})
-            field_index += 1
+                selected_layer.setEditorWidgetV2Config(field_index, {
+                    'CheckedState': 't', 'UncheckedState': 'f'})
 
     def handleValueRelations(self, new_layer, ref_native_col_num,
                              ref_foreign_col_num, selected_layer):

@@ -3,7 +3,7 @@ name=autoform
 qgisMinimumVersion=2.14
 description=AutoForm Plugin
 
-version=0.1.2
+version=0.1.3
 author=William Habelt, Sourcepole AG
 
 email=wha@sourcepole.ch
