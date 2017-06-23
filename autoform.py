@@ -61,9 +61,9 @@ class AutoForm:
             self.identifyRelations(selected_layer)
             self.alterForm(selected_layer)
             self.filterEmptyGroups()
-            QMessageBox.information(self.iface.mainWindow(), "AutoForm", "Form widgets were successfully changed!")
+            self.iface.messageBar().pushMessage("Success", "Form widgets were successfully changed!.", level=QgsMessageBar.INFO)
         else:
-            QMessageBox.warning(self.iface.mainWindow(), "Layer Error", "Please select a valid layer before running the plugin.")
+            self.iface.messageBar().pushMessage("Error", "Please select a valid layer before running the plugin.", level=QgsMessageBar.CRITICAL)
 
     def alterForm(self, selected_layer):
         """Iterate over the fields of the layer and alters the widgets in accordance to the typeName and length."""
