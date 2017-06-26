@@ -61,12 +61,16 @@ class AutoForm:
             self.identifyRelations(selected_layer)
             self.alterForm(selected_layer)
             self.filterEmptyGroups()
-            self.iface.messageBar().pushMessage("Success", "Form widgets were successfully changed!.", level=QgsMessageBar.INFO)
+            self.iface.messageBar().pushMessage("Success", "Form widgets were successfully changed!.",
+                                                level=QgsMessageBar.INFO)
         else:
-            self.iface.messageBar().pushMessage("Error", "Please select a valid layer before running the plugin.", level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushMessage("Error", "Please select a valid layer before running the plugin.",
+                                                level=QgsMessageBar.CRITICAL)
 
     def alterForm(self, selected_layer):
         """Iterate over the fields of the layer and alters the widgets in accordance to the typeName and length."""
+        not_nullable_columns = self.checkNullableColumns(selected_layer)
+
         for field_index, field in enumerate(selected_layer.pendingFields()):
             f_type = field.typeName()
             if selected_layer.editorWidgetV2(field_index) != 'TextEdit':
@@ -88,6 +92,9 @@ class AutoForm:
                 selected_layer.setEditorWidgetV2(field_index, 'CheckBox')
                 selected_layer.setEditorWidgetV2Config(field_index, {
                     'CheckedState': 't', 'UncheckedState': 'f'})
+
+            selected_layer.editFormConfig().setNotNull(field_index,
+                                                       not_nullable_columns[field_index])
 
     def handleValueRelations(self, new_layer, ref_native_col_num,
                              ref_foreign_col_num, selected_layer):
@@ -184,3 +191,14 @@ class AutoForm:
             if isinstance(child, QgsLayerTreeGroup):
                 if not child.findLayers():
                     root.removeChildNode(child)
+
+    def checkNullableColumns(self, selected_layer):
+        """Run query to check for columns that allow NULL-values (postgres provider)"""
+        data = selected_layer.dataProvider()
+        if data.name() == 'postgres':
+            uri = QgsDataSourceURI(data.dataSourceUri())
+            cur = self.connector.uriDatabaseConnect(uri)
+            relationretriever = RelationRetriever(cur)
+            # List of columns with the NOT NULL modifier
+            not_nullable_columns = relationretriever.checkNotNull(uri)
+            return not_nullable_columns

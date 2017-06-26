@@ -91,3 +91,13 @@ class RelationRetriever:
         foreign_tables = self.cur.fetchall()
 
         return foreign_tables
+
+    def checkNotNull(self, uri):
+        """Check if the column has the NOT NULL modifier"""
+        selected_oid = self.retrieveSelectedOid(uri)
+
+        null_query = "SELECT attnotnull FROM pg_attribute WHERE attrelid='%s' AND attstattarget!=0" % (selected_oid)
+        self.cur.execute(null_query)
+        not_nullable_columns = [item[0] for item in self.cur.fetchall()]
+
+        return not_nullable_columns
