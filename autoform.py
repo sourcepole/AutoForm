@@ -53,18 +53,21 @@ class AutoForm:
         have their widgets altered based on their fieldType and length. Next,
         all empty groups are removed from the MapLayerRegistry. This is in case
         the plugin added an empty group for the referenced tables but none were
-        added. Finally, a message box is returned to notify the user that the
-        process is finished.
+        added.
         """
         selected_layer = self.iface.activeLayer()
         if selected_layer:
+            if selected_layer.dataProvider().name() != 'postgres':
+                self.iface.messageBar().pushMessage("Autoform", "Please select a PostGIS layer before running the plugin.",
+                                                    level=QgsMessageBar.WARNING)
+                return
             self.identifyRelations(selected_layer)
             self.alterForm(selected_layer)
             self.filterEmptyGroups()
-            self.iface.messageBar().pushMessage("Success", "Form widgets were successfully changed!.",
+            self.iface.messageBar().pushMessage("Autoform", "Form widgets were successfully changed!.",
                                                 level=QgsMessageBar.INFO)
         else:
-            self.iface.messageBar().pushMessage("Error", "Please select a valid layer before running the plugin.",
+            self.iface.messageBar().pushMessage("Autoform", "Please select a PostGIS layer before running the plugin.",
                                                 level=QgsMessageBar.CRITICAL)
 
     def alterForm(self, selected_layer):
