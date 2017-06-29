@@ -9,7 +9,7 @@ author=William Habelt, Sourcepole AG
 email=wha@sourcepole.ch
 
 about=Plugin to automatically create better input masks for layers
-  Select a PostGIS layer and use Plugins->AutoForm->Generate Form to generating an input form.
+  Select a PostGIS layer and use Plugins->AutoForm->Generate Form to generate an input form.
 
 tracker=https://github.com/sourcepole/AutoForm/issues
 repository=https://github.com/sourcepole/AutoForm
