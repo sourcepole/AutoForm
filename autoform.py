@@ -143,10 +143,10 @@ class AutoForm:
         relationretriever = RelationRetriever(cur)
         referenced_layers = relationretriever.retrieveReferencedTables(uri)
         root = QgsProject.instance().layerTreeRoot()
-        tableGroup = root.findGroup("Raw_data_tables")
+        tableGroup = root.findGroup("Tables")
 
         if not tableGroup:
-            tableGroup = root.addGroup("Raw_data_tables")
+            tableGroup = root.addGroup("Tables")
 
         for a_layer in referenced_layers:
             relationretriever.setLayer(a_layer[0])
