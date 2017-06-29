@@ -3,7 +3,7 @@ name=autoform
 qgisMinimumVersion=2.14
 description=AutoForm Plugin
 
-version=0.2.0
+version=0.2.1
 author=William Habelt, Sourcepole AG
 
 email=wha@sourcepole.ch
@@ -15,6 +15,8 @@ tracker=https://github.com/sourcepole/AutoForm/issues
 repository=https://github.com/sourcepole/AutoForm
 
 changelog=
+    0.2.1
+        - Issue warning when called with non-PostGIS layer
     0.2.0
         - First non-experimental release
 
